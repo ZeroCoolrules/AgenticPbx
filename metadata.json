@@ -1,0 +1,6 @@
+{
+  "name": "DialWise AI - Autonomous Virtual PBX & Agentic SDR",
+  "description": "Production-grade Virtual PBX telephone system with autonomous AI SDR agents, live WebRTC/audio voice calls, multi-tenant routing, CRM qualification, and secure auth.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
