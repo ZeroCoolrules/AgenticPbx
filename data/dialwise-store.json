@@ -310,6 +310,63 @@
   ],
   "calls": [
     {
+      "id": "CA1234567890",
+      "direction": "inbound",
+      "callerNumber": "+15551234567",
+      "callerName": "PSTN Carrier Caller",
+      "calleeNumber": "+15550194821",
+      "didNumber": "+15550194821",
+      "status": "connected",
+      "startTime": "2026-10-27T05:25:03.155Z",
+      "durationSeconds": 0,
+      "agentId": "agent-sdr-marcus",
+      "extension": "102",
+      "sentiment": "neutral",
+      "qualificationScore": 35,
+      "bant": {
+        "score": 35,
+        "isQualified": false,
+        "budget": "Unknown",
+        "budgetDetails": "",
+        "authority": "Unknown",
+        "need": "",
+        "timeline": "Uncertain",
+        "notes": "Inbound PSTN telephone call received via Carrier Webhook"
+      },
+      "summary": "Active inbound carrier call from +15551234567 routed to Marcus on Ext 102.",
+      "actionItems": [],
+      "transcript": [
+        {
+          "id": "t-sys-1793078703155",
+          "sender": "system",
+          "text": "Inbound PSTN telephone call established via Carrier Gateway (From: +15551234567 -> DID: +15550194821).",
+          "timestamp": "5:25:03 AM"
+        },
+        {
+          "id": "t-agent-1793078703162",
+          "sender": "agent",
+          "text": "Thanks for calling Apex Cloud Systems. This is Marcus with AI Sales. How can we help automate your phone operations today?",
+          "timestamp": "5:25:03 AM"
+        }
+      ],
+      "toolExecutions": [
+        {
+          "id": "tool-1793078703162",
+          "toolName": "create_or_update_lead",
+          "timestamp": "5:25:03 AM",
+          "input": {
+            "callerNumber": "+15551234567"
+          },
+          "output": {
+            "foundInCrm": false,
+            "notes": "Carrier PSTN caller logged"
+          },
+          "status": "success",
+          "summary": "Looked up PSTN caller in CRM database"
+        }
+      ]
+    },
+    {
       "id": "call-1792912748708-y5a3",
       "direction": "inbound",
       "callerNumber": "+1 (555) 782-9901",

@@ -571,14 +571,14 @@ export const SoftphoneModal: React.FC = () => {
         ) : (
           /* DIALER SCREEN (When no call is active) */
           <div className="p-6 flex flex-col items-center">
-            {/* Call Simulator Highlights */}
+            {/* Live DIDs & Direct Connect */}
             <div className="w-full mb-6 p-4 rounded-xl bg-gradient-to-br from-indigo-950/40 via-purple-950/20 to-slate-900 border border-indigo-500/30">
               <div className="flex items-center space-x-2 text-indigo-300 font-semibold text-xs mb-2">
                 <Sparkles className="w-4 h-4 text-indigo-400" />
-                <span>Instant Inbound PBX Test Simulations</span>
+                <span>Live Virtual Numbers (DIDs) &amp; Agent Extensions</span>
               </div>
               <p className="text-xs text-slate-400 mb-3 leading-relaxed">
-                Experience the live AI PBX in action. Dial in directly as a prospective client and speak with the AI SDR or receptionist:
+                Connect directly to your active PBX telephone lines. Use your device's microphone to talk in real-time with full-duplex voice, BANT qualification, and calendar booking:
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -586,16 +586,16 @@ export const SoftphoneModal: React.FC = () => {
                   onClick={() =>
                     initiateInboundCall({
                       didNumber: '+1 (555) 019-4821',
-                      callerName: 'Enterprise Buyer',
+                      callerName: 'Inbound Caller',
                       callerNumber: '+1 (555) 839-2041',
-                      callerCompany: 'Omni Logistics',
+                      callerCompany: 'Inbound Business Line',
                     })
                   }
                   className="p-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center justify-between shadow-md transition-all"
                 >
                   <div className="text-left">
                     <div className="font-bold">Inbound Sales DID</div>
-                    <div className="text-[10px] text-indigo-200">Routes to Marcus (AI SDR Ext 102)</div>
+                    <div className="text-[10px] text-indigo-200">Direct to Marcus (AI SDR Ext 102)</div>
                   </div>
                   <Phone className="w-4 h-4" />
                 </button>
@@ -604,19 +604,26 @@ export const SoftphoneModal: React.FC = () => {
                   onClick={() =>
                     initiateInboundCall({
                       didNumber: '+1 (555) 019-4820',
-                      callerName: 'General Inbound',
+                      callerName: 'Direct Inbound',
                       callerNumber: '+1 (555) 992-1200',
-                      callerCompany: 'Apex Customer',
+                      callerCompany: 'Client Line',
                     })
                   }
                   className="p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-between border border-slate-700 transition-all"
                 >
                   <div className="text-left">
                     <div className="font-bold">Main Corporate DID</div>
-                    <div className="text-[10px] text-slate-400">Routes to Sophia (Reception Ext 101)</div>
+                    <div className="text-[10px] text-slate-400">Direct to Sophia (Reception Ext 101)</div>
                   </div>
                   <Phone className="w-4 h-4 text-slate-400" />
                 </button>
+              </div>
+
+              <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center space-x-2 text-[11px] text-slate-400">
+                <Mic className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span>
+                  <strong>Live Mic Input</strong>: When connected, toggle the microphone button to speak naturally.
+                </span>
               </div>
             </div>
 

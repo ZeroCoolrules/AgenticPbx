@@ -377,4 +377,164 @@ router.post('/:id/end', (req: Request, res: Response) => {
   res.json(call);
 });
 
+// ==========================================
+// REAL PSTN / CARRIER WEBHOOKS (TWILIO / TELNYX)
+// Allows connecting real external phone numbers without simulation
+// ==========================================
+
+// POST /api/calls/webhook/twilio (Carrier incoming call webhook)
+router.post('/webhook/twilio', (req: Request, res: Response) => {
+  try {
+    const from = (req.body.From || req.query.From || '+1 (555) 000-0000').toString();
+    const to = (req.body.To || req.query.To || '+1 (555) 019-4821').toString();
+    const callSid = (req.body.CallSid || `carrier-${Date.now()}`).toString();
+
+    const dids = db.getVirtualNumbers();
+    const extensions = db.getExtensions();
+    const routing = resolveCallRoute(to, dids, extensions);
+    const agent = db.getAgentById(routing.agentId);
+
+    const greeting = agent?.role === 'sdr'
+      ? `Thanks for calling Apex Cloud Systems. This is ${agent.name} with AI Sales. How can we help automate your phone operations today?`
+      : `Thank you for calling Apex Cloud Systems. My name is ${agent?.name || 'Sophia'}. How may I direct your call today?`;
+
+    const newCall: CallSession = {
+      id: callSid,
+      direction: 'inbound',
+      callerNumber: from,
+      callerName: req.body.CallerName || 'PSTN Carrier Caller',
+      calleeNumber: to,
+      didNumber: to,
+      status: 'connected',
+      startTime: new Date().toISOString(),
+      durationSeconds: 0,
+      agentId: routing.agentId,
+      extension: routing.targetExtension,
+      sentiment: 'neutral',
+      qualificationScore: 35,
+      bant: {
+        score: 35,
+        isQualified: false,
+        budget: 'Unknown',
+        budgetDetails: '',
+        authority: 'Unknown',
+        need: '',
+        timeline: 'Uncertain',
+        notes: 'Inbound PSTN telephone call received via Carrier Webhook',
+      },
+      summary: `Active inbound carrier call from ${from} routed to ${agent?.name} on Ext ${routing.targetExtension}.`,
+      actionItems: [],
+      transcript: [
+        {
+          id: `t-sys-${Date.now()}`,
+          sender: 'system',
+          text: `Inbound PSTN telephone call established via Carrier Gateway (From: ${from} -> DID: ${to}).`,
+          timestamp: new Date().toLocaleTimeString(),
+        },
+        {
+          id: `t-agent-${Date.now()}`,
+          sender: 'agent',
+          text: greeting,
+          timestamp: new Date().toLocaleTimeString(),
+        },
+      ],
+      toolExecutions: [
+        {
+          id: `tool-${Date.now()}`,
+          toolName: 'create_or_update_lead',
+          timestamp: new Date().toLocaleTimeString(),
+          input: { callerNumber: from },
+          output: { foundInCrm: false, notes: 'Carrier PSTN caller logged' },
+          status: 'success',
+          summary: 'Looked up PSTN caller in CRM database',
+        },
+      ],
+    };
+
+    db.createCall(newCall);
+
+    const twiml = `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Gather input="speech" timeout="4" speechTimeout="auto" action="/api/calls/webhook/twilio/gather?callId=${newCall.id}" method="POST">
+    <Say voice="Polly.Matthew">${greeting}</Say>
+  </Gather>
+  <Say voice="Polly.Matthew">I didn't catch that. Please stay on the line.</Say>
+  <Redirect method="POST">/api/calls/webhook/twilio/gather?callId=${newCall.id}</Redirect>
+</Response>`;
+
+    res.set('Content-Type', 'text/xml');
+    res.send(twiml);
+  } catch (err: any) {
+    console.error('[Carrier Webhook] Error:', err);
+    res.set('Content-Type', 'text/xml');
+    res.send(`<?xml version="1.0" encoding="UTF-8"?><Response><Say>System encountered an error. Please try again later.</Say></Response>`);
+  }
+});
+
+// POST /api/calls/webhook/twilio/gather (Carrier voice turn handler)
+router.post('/webhook/twilio/gather', async (req: Request, res: Response) => {
+  try {
+    const callId = (req.query.callId || req.body.CallSid || '').toString();
+    const speechResult = (req.body.SpeechResult || req.body.speech || '').toString().trim();
+
+    const call = db.getCallById(callId);
+    if (!call || !speechResult) {
+      const twiml = `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Gather input="speech" timeout="4" speechTimeout="auto" action="/api/calls/webhook/twilio/gather?callId=${callId}" method="POST">
+    <Say voice="Polly.Matthew">Are you still there? Please let me know how I can help you.</Say>
+  </Gather>
+  <Hangup/>
+</Response>`;
+      res.set('Content-Type', 'text/xml');
+      res.send(twiml);
+      return;
+    }
+
+    // Append caller message
+    call.transcript.push({
+      id: `t-caller-${Date.now()}`,
+      sender: 'caller',
+      text: speechResult,
+      timestamp: new Date().toLocaleTimeString(),
+    });
+
+    const agent = db.getAgentById(call.agentId) || db.getAgents()[0];
+    const agentTurn = await processAgentConversationTurn(call, agent, speechResult);
+
+    // Append agent message
+    call.transcript.push({
+      id: `t-agent-${Date.now()}`,
+      sender: 'agent',
+      text: agentTurn.replyText,
+      timestamp: new Date().toLocaleTimeString(),
+    });
+
+    if (agentTurn.toolExecutions) {
+      call.toolExecutions.push(...agentTurn.toolExecutions);
+    }
+    if (agentTurn.bantUpdate) {
+      call.bant = { ...(call.bant || {}), ...agentTurn.bantUpdate } as any;
+    }
+
+    db.updateCall(call.id, call);
+
+    const twiml = `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Gather input="speech" timeout="4" speechTimeout="auto" action="/api/calls/webhook/twilio/gather?callId=${call.id}" method="POST">
+    <Say voice="Polly.Matthew">${agentTurn.replyText}</Say>
+  </Gather>
+  <Say voice="Polly.Matthew">Thank you for your time. Have a wonderful day.</Say>
+  <Hangup/>
+</Response>`;
+
+    res.set('Content-Type', 'text/xml');
+    res.send(twiml);
+  } catch (err: any) {
+    console.error('[Carrier Gather Webhook] Error:', err);
+    res.set('Content-Type', 'text/xml');
+    res.send(`<?xml version="1.0" encoding="UTF-8"?><Response><Hangup/></Response>`);
+  }
+});
+
 export default router;

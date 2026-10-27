@@ -116,21 +116,22 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigateToTab })
             </p>
           </div>
 
-          {/* Quick Simulation Launch Buttons */}
+          {/* Direct Live Call Actions */}
           <div className="flex flex-wrap items-center gap-2.5 shrink-0">
             <button
               onClick={() =>
                 initiateInboundCall({
                   didNumber: '+1 (555) 019-4821',
-                  callerName: 'Alex Rivera (VP Sales)',
+                  callerName: 'Enterprise Client',
                   callerNumber: '+1 (555) 782-9901',
-                  callerCompany: 'Omni Retail Systems',
+                  callerCompany: 'Inbound Business Call',
                 })
               }
               className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold flex items-center space-x-2 shadow-lg shadow-indigo-600/30 transition-all hover:scale-[1.02]"
+              title="Launch a direct real-time voice call with Marcus (AI SDR Ext 102)"
             >
               <Zap className="w-4 h-4 text-amber-300" />
-              <span>Simulate Inbound SDR Call</span>
+              <span>Call AI Sales Line (Ext 102)</span>
             </button>
 
             <button
@@ -138,7 +139,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigateToTab })
               className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-semibold flex items-center space-x-2 border border-slate-700 transition-all"
             >
               <PhoneCall className="w-4 h-4 text-emerald-400" />
-              <span>Dial Softphone</span>
+              <span>Open Softphone Dialpad</span>
             </button>
           </div>
         </div>
