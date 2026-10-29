@@ -38,7 +38,7 @@ async function startServer() {
   app.use('/api/calls', callsRoutes);
   app.use('/api/crm', crmRoutes);
 
-  // Health check
+  // Health checks
   app.get('/api/health', (req, res) => {
     res.json({
       status: 'healthy',
@@ -46,6 +46,8 @@ async function startServer() {
       timestamp: new Date().toISOString(),
     });
   });
+  app.get('/healthz', (req, res) => res.sendStatus(200));
+  app.get('/readyz', (req, res) => res.sendStatus(200));
 
   if (!isProd) {
     // Vite Dev Server middleware mode
@@ -56,7 +58,9 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     // Production static serving
-    const distPath = path.resolve(__dirname, 'dist');
+    // __dirname here is the bundled dist/ folder (esbuild outputs to dist/server.js),
+    // so the built client assets live alongside it at dist/client.
+    const distPath = path.resolve(__dirname, 'client');
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
       res.sendFile(path.resolve(distPath, 'index.html'));
