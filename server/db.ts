@@ -11,6 +11,8 @@ import {
   CRMLead,
   CalendarAppointment,
   OutboundCampaign,
+  SMSThread,
+  SMSMessage,
 } from '../src/types/index.ts';
 
 export interface DBUser extends User {
@@ -28,6 +30,8 @@ export interface DialWiseStore {
   leads: CRMLead[];
   appointments: CalendarAppointment[];
   campaigns: OutboundCampaign[];
+  smsThreads: SMSThread[];
+  smsMessages: SMSMessage[];
   auditLogs: Array<{ id: string; timestamp: string; action: string; userId?: string; details: string }>;
 }
 
@@ -572,6 +576,139 @@ function getInitialStore(): DialWiseStore {
     },
   ];
 
+  const smsThreads: SMSThread[] = [
+    {
+      id: 'thread-1',
+      customerNumber: '+1 (555) 782-9901',
+      customerName: 'Alex Rivera',
+      customerCompany: 'Omni Retail Systems',
+      assignedDid: '+1 (555) 019-4821',
+      lastMessageText: 'Can you send over details on the AI SDR package for a team of 40 reps?',
+      lastMessageTimestamp: new Date(Date.now() - 1000 * 60 * 18).toISOString(),
+      unreadCount: 1,
+      autonomousMode: true, // Operating independently!
+      assignedAgentId: 'agent-sdr-marcus',
+      leadId: 'lead-1',
+      bantScore: 85,
+      status: 'open',
+    },
+    {
+      id: 'thread-2',
+      customerNumber: '+1 (555) 392-1084',
+      customerName: 'Samantha Wu',
+      customerCompany: 'Apex Healthtech',
+      assignedDid: '+1 (555) 019-4820',
+      lastMessageText: 'Thursday at 2 PM EST works perfectly for our team demo. Looking forward to it!',
+      lastMessageTimestamp: new Date(Date.now() - 1000 * 60 * 65).toISOString(),
+      unreadCount: 0,
+      autonomousMode: true,
+      assignedAgentId: 'agent-receptionist-sophia',
+      leadId: 'lead-2',
+      bantScore: 78,
+      status: 'waiting_customer',
+    },
+    {
+      id: 'thread-3',
+      customerNumber: '+1 (555) 904-2281',
+      customerName: 'Marcus Sterling',
+      customerCompany: 'Sterling Logistics Group',
+      assignedDid: '+1 (555) 019-4821',
+      lastMessageText: 'We need custom SIP Trunk latency under 15ms. Who can I talk to regarding SLAs?',
+      lastMessageTimestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
+      unreadCount: 0,
+      autonomousMode: false, // Operator manual takeover mode!
+      assignedAgentId: 'agent-support-david',
+      status: 'waiting_agent',
+    },
+  ];
+
+  const smsMessages: SMSMessage[] = [
+    {
+      id: 'msg-1',
+      threadId: 'thread-1',
+      fromNumber: '+1 (555) 782-9901',
+      toNumber: '+1 (555) 019-4821',
+      direction: 'inbound',
+      senderType: 'customer',
+      senderName: 'Alex Rivera',
+      text: 'Hi, saw your autonomous PBX demo on the site.',
+      timestamp: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
+      status: 'received',
+    },
+    {
+      id: 'msg-2',
+      threadId: 'thread-1',
+      fromNumber: '+1 (555) 019-4821',
+      toNumber: '+1 (555) 782-9901',
+      direction: 'outbound',
+      senderType: 'ai_autonomous',
+      senderName: 'Marcus (AI SDR)',
+      text: 'Hi Alex! Thanks for reaching out to Apex Cloud Systems. DialWise handles full-duplex voice + SMS automation for inside sales teams. How large is your sales rep team?',
+      timestamp: new Date(Date.now() - 1000 * 60 * 23).toISOString(),
+      status: 'delivered',
+    },
+    {
+      id: 'msg-3',
+      threadId: 'thread-1',
+      fromNumber: '+1 (555) 782-9901',
+      toNumber: '+1 (555) 019-4821',
+      direction: 'inbound',
+      senderType: 'customer',
+      senderName: 'Alex Rivera',
+      text: 'Can you send over details on the AI SDR package for a team of 40 reps?',
+      timestamp: new Date(Date.now() - 1000 * 60 * 18).toISOString(),
+      status: 'received',
+    },
+    {
+      id: 'msg-4',
+      threadId: 'thread-2',
+      fromNumber: '+1 (555) 392-1084',
+      toNumber: '+1 (555) 019-4820',
+      direction: 'inbound',
+      senderType: 'customer',
+      senderName: 'Samantha Wu',
+      text: 'Would love to schedule an executive walkthrough of the PBX system.',
+      timestamp: new Date(Date.now() - 1000 * 60 * 80).toISOString(),
+      status: 'received',
+    },
+    {
+      id: 'msg-5',
+      threadId: 'thread-2',
+      fromNumber: '+1 (555) 019-4820',
+      toNumber: '+1 (555) 392-1084',
+      direction: 'outbound',
+      senderType: 'ai_autonomous',
+      senderName: 'Sophia (AI Receptionist)',
+      text: 'Hello Samantha! I would be delighted to set that up. We have openings this Thursday at 2:00 PM EST or Friday at 11:00 AM EST. Do either of those work for you?',
+      timestamp: new Date(Date.now() - 1000 * 60 * 75).toISOString(),
+      status: 'delivered',
+    },
+    {
+      id: 'msg-6',
+      threadId: 'thread-2',
+      fromNumber: '+1 (555) 392-1084',
+      toNumber: '+1 (555) 019-4820',
+      direction: 'inbound',
+      senderType: 'customer',
+      senderName: 'Samantha Wu',
+      text: 'Thursday at 2 PM EST works perfectly for our team demo. Looking forward to it!',
+      timestamp: new Date(Date.now() - 1000 * 60 * 65).toISOString(),
+      status: 'received',
+    },
+    {
+      id: 'msg-7',
+      threadId: 'thread-3',
+      fromNumber: '+1 (555) 904-2281',
+      toNumber: '+1 (555) 019-4821',
+      direction: 'inbound',
+      senderType: 'customer',
+      senderName: 'Marcus Sterling',
+      text: 'We need custom SIP Trunk latency under 15ms. Who can I talk to regarding SLAs?',
+      timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
+      status: 'received',
+    },
+  ];
+
   return {
     users: [defaultAdmin, defaultSdrUser],
     virtualNumbers,
@@ -582,6 +719,8 @@ function getInitialStore(): DialWiseStore {
     leads,
     appointments,
     campaigns,
+    smsThreads,
+    smsMessages,
     auditLogs: [
       {
         id: 'log-1',
@@ -607,7 +746,11 @@ class Database {
       }
       if (fs.existsSync(STORE_FILE)) {
         const raw = fs.readFileSync(STORE_FILE, 'utf-8');
-        return JSON.parse(raw);
+        const parsed = JSON.parse(raw);
+        const defaults = getInitialStore();
+        if (!parsed.smsThreads) parsed.smsThreads = defaults.smsThreads;
+        if (!parsed.smsMessages) parsed.smsMessages = defaults.smsMessages;
+        return parsed;
       }
     } catch (err) {
       console.error('[DB] Failed to read store file, reinitializing default:', err);
@@ -786,6 +929,61 @@ class Database {
     this.store.campaigns[idx] = { ...this.store.campaigns[idx], ...updates };
     this.saveStore();
     return this.store.campaigns[idx];
+  }
+
+  // SMS Messaging & Autonomous Dispatch
+  public getSMSThreads(): SMSThread[] {
+    return this.store.smsThreads || [];
+  }
+
+  public getSMSThreadById(id: string): SMSThread | undefined {
+    return (this.store.smsThreads || []).find(t => t.id === id);
+  }
+
+  public getSMSThreadByCustomerNumber(phone: string): SMSThread | undefined {
+    const clean = phone.replace(/\D/g, '');
+    return (this.store.smsThreads || []).find(t => t.customerNumber.replace(/\D/g, '') === clean);
+  }
+
+  public createSMSThread(thread: SMSThread): SMSThread {
+    if (!this.store.smsThreads) this.store.smsThreads = [];
+    this.store.smsThreads.unshift(thread);
+    this.saveStore();
+    return thread;
+  }
+
+  public updateSMSThread(id: string, updates: Partial<SMSThread>): SMSThread | null {
+    if (!this.store.smsThreads) this.store.smsThreads = [];
+    const idx = this.store.smsThreads.findIndex(t => t.id === id);
+    if (idx === -1) return null;
+    this.store.smsThreads[idx] = { ...this.store.smsThreads[idx], ...updates };
+    this.saveStore();
+    return this.store.smsThreads[idx];
+  }
+
+  public getSMSMessages(threadId: string): SMSMessage[] {
+    return (this.store.smsMessages || []).filter(m => m.threadId === threadId);
+  }
+
+  public createSMSMessage(msg: SMSMessage): SMSMessage {
+    if (!this.store.smsMessages) this.store.smsMessages = [];
+    this.store.smsMessages.push(msg);
+
+    // Update parent thread last message and timestamp
+    const thread = (this.store.smsThreads || []).find(t => t.id === msg.threadId);
+    if (thread) {
+      thread.lastMessageText = msg.text;
+      thread.lastMessageTimestamp = msg.timestamp;
+      if (msg.direction === 'inbound') {
+        thread.unreadCount = (thread.unreadCount || 0) + 1;
+        thread.status = thread.autonomousMode ? 'open' : 'waiting_agent';
+      } else {
+        thread.status = 'waiting_customer';
+      }
+    }
+
+    this.saveStore();
+    return msg;
   }
 }
 

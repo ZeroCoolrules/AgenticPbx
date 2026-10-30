@@ -383,3 +383,123 @@ function executeAgentTools(call: CallSession, tools: Array<{ toolName: string; a
 
   return executions;
 }
+
+export interface SMSTurnResponse {
+  replyText: string;
+  bantUpdate?: {
+    budget: 'High' | 'Medium' | 'Low' | 'Unknown';
+    budgetDetails: string;
+    authority: 'Decision Maker' | 'Influencer' | 'User/Researcher' | 'Unknown';
+    need: string;
+    timeline: 'Immediate (< 30d)' | '1-3 months' | '3-6 months' | 'Uncertain';
+    notes: string;
+    score: number;
+    isQualified: boolean;
+  };
+  actionTaken?: string;
+}
+
+export async function processAgentSMSTurn(
+  thread: import('../src/types/index.ts').SMSThread,
+  history: import('../src/types/index.ts').SMSMessage[],
+  incomingText: string,
+  agent: AIAgent
+): Promise<SMSTurnResponse> {
+  const historyText = history
+    .slice(-8)
+    .map(m => `${m.senderType === 'customer' ? 'CUSTOMER' : 'AGENT'}: ${m.text}`)
+    .join('\n');
+
+  if (aiClient) {
+    try {
+      const prompt = `
+You are ${agent.name}, an AI SDR and Telephony Specialist for Apex Cloud Systems.
+You are communicating via two-way SMS with a customer / prospective client.
+Customer Name: ${thread.customerName}
+Customer Company: ${thread.customerCompany || 'Unknown'}
+Customer Phone: ${thread.customerNumber}
+Current BANT Score: ${thread.bantScore || 40}/100
+
+Previous SMS conversation history:
+${historyText}
+
+Customer just texted: "${incomingText}"
+
+INSTRUCTIONS:
+1. Respond in character as ${agent.name} via text message (SMS).
+2. Format: Short, natural, conversational English (1 to 2 sentences maximum, strictly under 280 characters). Do NOT write long emails or use markdown headers.
+3. If they ask for pricing, features, or scheduling, answer helpfully and suggest scheduling a quick demo or asking for their team size.
+4. If they agree to a demo or specify a time, confirm enthusiastically and provide https://dialwise.io/book.
+5. Return ONLY a valid JSON object:
+{
+  "replyText": "your concise SMS text message here",
+  "extractedBant": {
+    "budget": "High" | "Medium" | "Low" | "Unknown",
+    "budgetDetails": "brief note",
+    "authority": "Decision Maker" | "Influencer" | "User/Researcher" | "Unknown",
+    "need": "core need",
+    "timeline": "Immediate (< 30d)" | "1-3 months" | "3-6 months" | "Uncertain",
+    "notes": "summary",
+    "score": number between 30 and 100,
+    "isQualified": boolean
+  },
+  "actionTaken": "string or null"
+}
+`;
+
+      const responsePromise = aiClient.models.generateContent({
+        model: 'gemini-3.8-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+          temperature: 0.7,
+        },
+      });
+
+      const timeoutPromise = new Promise<null>((_, reject) =>
+        setTimeout(() => reject(new Error('Gemini SMS Timeout')), 3500)
+      );
+
+      const response: any = await Promise.race([responsePromise, timeoutPromise]);
+
+      if (response && response.text) {
+        const parsed = JSON.parse(response.text.trim());
+        return {
+          replyText: parsed.replyText || `Thanks for your message, ${thread.customerName}! We'd love to connect. What time this week works best for a brief 15-min call?`,
+          bantUpdate: parsed.extractedBant,
+          actionTaken: parsed.actionTaken,
+        };
+      }
+    } catch (err) {
+      console.warn('[Gemini SMS] Fallback used due to API error:', err);
+    }
+  }
+
+  // Robust contextual fallback
+  const lower = incomingText.toLowerCase();
+  let replyText = `Hi ${thread.customerName}, thanks for your text! This is ${agent.name} from Apex Cloud Systems. How can we help streamline your phone and SMS operations?`;
+
+  if (lower.includes('demo') || lower.includes('schedule') || lower.includes('call') || lower.includes('time') || lower.includes('meet')) {
+    replyText = `Great to hear! I have openings this Thursday at 2 PM EST or Friday at 11 AM EST. Do either of those work for your team?`;
+  } else if (lower.includes('price') || lower.includes('cost') || lower.includes('pricing') || lower.includes('quote')) {
+    replyText = `Our enterprise PBX + AI SDR plans start at $49/mo per DID with unlimited AI minutes. How many reps are on your team?`;
+  } else if (lower.includes('yes') || lower.includes('works') || lower.includes('perfect') || lower.includes('sounds good')) {
+    replyText = `Confirmed! I've locked that into our calendar and sent the invite over to your phone. Looking forward to speaking!`;
+  } else if (lower.includes('support') || lower.includes('help') || lower.includes('issue') || lower.includes('latency')) {
+    replyText = `Understood. I've flagged this with our Technical Support desk (Ext 103). A specialist will follow up shortly!`;
+  }
+
+  return {
+    replyText,
+    bantUpdate: {
+      budget: lower.includes('price') || lower.includes('cost') ? 'Medium' : 'Unknown',
+      budgetDetails: 'Discussed via SMS',
+      authority: 'Decision Maker',
+      need: 'Automated PBX and SDR text routing',
+      timeline: 'Immediate (< 30d)',
+      notes: 'Customer texted inquiry via SMS',
+      score: 65,
+      isQualified: true,
+    },
+  };
+}

@@ -225,3 +225,37 @@ export interface WebRTCTrunkDiagnostics {
   status: 'optimal' | 'warning' | 'critical';
 }
 
+export type SMSDirection = 'inbound' | 'outbound';
+export type SMSSenderType = 'customer' | 'human_agent' | 'ai_autonomous';
+export type SMSDeliveryStatus = 'sent' | 'delivered' | 'failed' | 'received';
+
+export interface SMSMessage {
+  id: string;
+  threadId: string;
+  fromNumber: string;
+  toNumber: string;
+  direction: SMSDirection;
+  senderType: SMSSenderType;
+  senderName: string;
+  text: string;
+  timestamp: string;
+  status: SMSDeliveryStatus;
+  aiSuggested?: boolean;
+}
+
+export interface SMSThread {
+  id: string;
+  customerNumber: string;
+  customerName: string;
+  customerCompany?: string;
+  assignedDid: string;
+  lastMessageText: string;
+  lastMessageTimestamp: string;
+  unreadCount: number;
+  autonomousMode: boolean; // if true, AI auto-replies independently
+  assignedAgentId: string;
+  leadId?: string;
+  bantScore?: number;
+  status: 'open' | 'resolved' | 'waiting_customer' | 'waiting_agent';
+}
+

@@ -14,6 +14,7 @@ import {
   Search,
   Volume2,
   Zap,
+  MessageSquare,
 } from 'lucide-react';
 import { useCall } from '../context/CallContext.tsx';
 import { useFilters } from '../context/FilterContext.tsx';
@@ -141,6 +142,14 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigateToTab })
               <PhoneCall className="w-4 h-4 text-emerald-400" />
               <span>Open Softphone Dialpad</span>
             </button>
+
+            <button
+              onClick={() => onNavigateToTab('sms')}
+              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-semibold flex items-center space-x-2 border border-slate-700 transition-all"
+            >
+              <MessageSquare className="w-4 h-4 text-indigo-400" />
+              <span>Customer SMS Hub</span>
+            </button>
           </div>
         </div>
 
@@ -154,6 +163,20 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ onNavigateToTab })
         totalCount={recentCalls.length}
         filteredCount={filteredCalls.length}
       />
+
+      {/* Section Header with Analytics Navigation Link */}
+      <div className="flex items-center justify-between px-1">
+        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+          Real-Time PBX Switchboard Performance
+        </span>
+        <button
+          onClick={() => onNavigateToTab('analytics')}
+          className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center space-x-1 bg-indigo-500/10 hover:bg-indigo-500/20 px-3 py-1 rounded-lg border border-indigo-500/20 transition-all"
+        >
+          <span>Deep Analytics Dashboard</span>
+          <ArrowUpRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
 
       {/* Metrics Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

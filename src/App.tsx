@@ -4,6 +4,8 @@ import { CallProvider } from './context/CallContext.tsx';
 import { FilterProvider } from './context/FilterContext.tsx';
 import { Navbar, ActiveTab } from './components/Navbar.tsx';
 import { CommandCenter } from './components/CommandCenter.tsx';
+import { AnalyticsDashboard } from './components/AnalyticsDashboard.tsx';
+import { SMSConversationsView } from './components/SMSConversationsView.tsx';
 import { AgentsStudio } from './components/AgentsStudio.tsx';
 import { PBXManagement } from './components/PBXManagement.tsx';
 import { CRMLeadsView } from './components/CRMLeadsView.tsx';
@@ -21,7 +23,7 @@ function MainApp() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tabParam = params.get('tab');
-    if (tabParam && ['command_center', 'agents', 'telephony', 'crm', 'calendar', 'campaigns', 'audit'].includes(tabParam)) {
+    if (tabParam && ['command_center', 'analytics', 'sms', 'agents', 'telephony', 'crm', 'calendar', 'campaigns', 'audit'].includes(tabParam)) {
       setActiveTab(tabParam as ActiveTab);
     }
   }, []);
@@ -40,6 +42,8 @@ function MainApp() {
         {activeTab === 'command_center' && (
           <CommandCenter onNavigateToTab={(tab) => setActiveTab(tab)} />
         )}
+        {activeTab === 'analytics' && <AnalyticsDashboard />}
+        {activeTab === 'sms' && <SMSConversationsView />}
         {activeTab === 'agents' && <AgentsStudio />}
         {activeTab === 'telephony' && <PBXManagement />}
         {activeTab === 'crm' && <CRMLeadsView />}

@@ -9,6 +9,8 @@ import pbxRoutes from './server/routes/pbxRoutes.ts';
 import agentsRoutes from './server/routes/agentsRoutes.ts';
 import callsRoutes from './server/routes/callsRoutes.ts';
 import crmRoutes from './server/routes/crmRoutes.ts';
+import analyticsRoutes from './server/routes/analyticsRoutes.ts';
+import smsRoutes from './server/routes/smsRoutes.ts';
 
 dotenv.config();
 
@@ -37,6 +39,8 @@ async function startServer() {
   app.use('/api/agents', agentsRoutes);
   app.use('/api/calls', callsRoutes);
   app.use('/api/crm', crmRoutes);
+  app.use('/api/analytics', analyticsRoutes);
+  app.use('/api/sms', smsRoutes);
 
   // Health checks
   app.get('/api/health', (req, res) => {

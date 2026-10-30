@@ -12,11 +12,13 @@ import {
   User as UserIcon,
   Activity,
   Megaphone,
+  BarChart3,
+  MessageSquare,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.tsx';
 import { useCall } from '../context/CallContext.tsx';
 
-export type ActiveTab = 'command_center' | 'agents' | 'telephony' | 'crm' | 'calendar' | 'campaigns' | 'audit';
+export type ActiveTab = 'command_center' | 'analytics' | 'sms' | 'agents' | 'telephony' | 'crm' | 'calendar' | 'campaigns' | 'audit';
 
 interface NavbarProps {
   activeTab: ActiveTab;
@@ -32,6 +34,8 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onOpenA
 
   const navItems = [
     { id: 'command_center', label: 'Command Center', icon: Activity },
+    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+    { id: 'sms', label: 'SMS & Messaging', icon: MessageSquare },
     { id: 'agents', label: 'AI SDR Workforce', icon: Bot },
     { id: 'telephony', label: 'PBX & Numbers', icon: Phone },
     { id: 'crm', label: 'CRM & BANT Leads', icon: Users },
